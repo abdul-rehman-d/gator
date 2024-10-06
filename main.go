@@ -102,6 +102,25 @@ func handlerReset(s *state, cmd command) error {
 	return s.db.ResetAllUsers(ctx)
 }
 
+func handlerGetUsers(s *state, cmd command) error {
+	ctx := context.Background()
+	users, err := s.db.GetUsers(ctx)
+	if err != nil {
+		if utils.IsNotFoundError(err) {
+			return fmt.Errorf("no users exist.")
+		}
+		return err
+	}
+	for _, user := range users {
+		if user.Name == s.config.CurrentUsername {
+			fmt.Printf("%s (current)\n", user.Name)
+		} else {
+			fmt.Printf("%s\n", user.Name)
+		}
+	}
+	return nil
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("no command given.")
@@ -134,6 +153,7 @@ func main() {
 	cmds.register("login", handlerLogin)
 	cmds.register("register", handlerRegister)
 	cmds.register("reset", handlerReset)
+	cmds.register("users", handlerGetUsers)
 
 	if err := cmds.run(s, cmd); err != nil {
 		log.Fatal(err)
