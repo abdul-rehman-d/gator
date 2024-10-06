@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gator/internal/config"
 	"gator/internal/database"
+	"gator/internal/utils"
 	"log"
 	"os"
 	"time"
@@ -72,6 +73,9 @@ func handlerRegister(s *state, cmd command) error {
 
 	insertedUser, err := s.db.CreateUser(ctx, user)
 	if err != nil {
+		if utils.IsDuplicateError(err) {
+			return fmt.Errorf("%s already exists. Try a different username.", username)
+		}
 		return err
 	}
 	fmt.Printf("%v\n", insertedUser)
