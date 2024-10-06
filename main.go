@@ -97,6 +97,11 @@ func handlerRegister(s *state, cmd command) error {
 	return nil
 }
 
+func handlerReset(s *state, cmd command) error {
+	ctx := context.Background()
+	return s.db.ResetAllUsers(ctx)
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("no command given.")
@@ -128,6 +133,7 @@ func main() {
 	}
 	cmds.register("login", handlerLogin)
 	cmds.register("register", handlerRegister)
+	cmds.register("reset", handlerReset)
 
 	if err := cmds.run(s, cmd); err != nil {
 		log.Fatal(err)
