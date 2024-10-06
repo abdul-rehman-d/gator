@@ -30,7 +30,7 @@ func Read() (Config, error) {
 	return cfg, nil
 }
 
-func (cfg Config) SetUser(username string) error {
+func (cfg *Config) SetUser(username string) error {
 	filePath, err := getConfigFilePath()
 	if err != nil {
 		return err
