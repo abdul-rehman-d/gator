@@ -45,7 +45,17 @@ func handlerLogin(s *state, cmd command) error {
 		return fmt.Errorf("Usage: gator login <username>")
 	}
 	username := cmd.args[0]
-	err := s.config.SetUser(username)
+
+	ctx := context.Background()
+	_, err := s.db.GetUser(ctx, username)
+	if err != nil {
+		if utils.IsNotFoundError(err) {
+			return fmt.Errorf("%s does not exist. Try registering first", username)
+		}
+		return err
+	}
+
+	err = s.config.SetUser(username)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,11 @@
 package utils
 
-import "github.com/lib/pq"
+import (
+	"database/sql"
+	"errors"
+
+	"github.com/lib/pq"
+)
 
 const (
 	UniqueViolationErr = pq.ErrorCode("23505")
@@ -11,4 +16,8 @@ func IsDuplicateError(err error) bool {
 		return pgerr.Code == UniqueViolationErr
 	}
 	return false
+}
+
+func IsNotFoundError(err error) bool {
+	return errors.Is(err, sql.ErrNoRows)
 }
