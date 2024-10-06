@@ -1,13 +1,21 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"gator/internal/config"
+	"gator/internal/database"
 	"log"
 	"os"
+	"time"
+
+	"github.com/google/uuid"
+	_ "github.com/lib/pq"
 )
 
 type state struct {
+	db     *database.Queries
 	config *config.Config
 }
 
@@ -44,6 +52,37 @@ func handlerLogin(s *state, cmd command) error {
 	return nil
 }
 
+func handlerRegister(s *state, cmd command) error {
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("Usage: gator login <username>")
+	}
+	username := cmd.args[0]
+	ctx := context.Background()
+
+	currentTime := sql.NullTime{
+		Time:  time.Now(),
+		Valid: true,
+	}
+	user := database.CreateUserParams{
+		ID:        uuid.New(),
+		Name:      username,
+		CreatedAt: currentTime,
+		UpdatedAt: currentTime,
+	}
+
+	insertedUser, err := s.db.CreateUser(ctx, user)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%v\n", insertedUser)
+	err = s.config.SetUser(username)
+	if err != nil {
+		return err
+	}
+	fmt.Println("User has been set.")
+	return nil
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("no command given.")
@@ -58,7 +97,15 @@ func main() {
 		log.Fatal(err)
 	}
 
+	db, err := sql.Open("postgres", cfg.DbUrl)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	dbQueries := database.New(db)
+
 	s := &state{
+		db:     dbQueries,
 		config: &cfg,
 	}
 
@@ -66,6 +113,7 @@ func main() {
 		commands: make(map[string]func(*state, command) error),
 	}
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
 
 	if err := cmds.run(s, cmd); err != nil {
 		log.Fatal(err)
