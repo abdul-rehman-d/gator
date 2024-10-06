@@ -55,6 +55,7 @@ func main() {
 	cmds.register("users", handlerGetUsers)
 	cmds.register("agg", handlerAgg)
 	cmds.register("addfeed", handlerAddFeed)
+	cmds.register("feeds", handlerGetAllFeeds)
 
 	if err := cmds.run(s, cmd); err != nil {
 		log.Fatal(err)
