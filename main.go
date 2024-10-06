@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gator/internal/config"
 	"gator/internal/database"
+	"gator/internal/rss"
 	"gator/internal/utils"
 	"log"
 	"os"
@@ -121,6 +122,18 @@ func handlerGetUsers(s *state, cmd command) error {
 	return nil
 }
 
+func handlerAgg(s *state, cmd command) error {
+	ctx := context.Background()
+
+	feed, err := rss.FetchFeed(ctx, "https://www.wagslane.dev/index.xml")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(feed)
+	return nil
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("no command given.")
@@ -154,6 +167,7 @@ func main() {
 	cmds.register("register", handlerRegister)
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerGetUsers)
+	cmds.register("agg", handlerAgg)
 
 	if err := cmds.run(s, cmd); err != nil {
 		log.Fatal(err)
